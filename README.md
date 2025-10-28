@@ -1,7 +1,4 @@
-# VIGILA - AWS Dashboard
-Aplicación Flask desplegada en Render para monitorear costos, seguridad y escalabilidad de infraestructura en AWS.
+# Proyecto AWS - VIGILA
 
-## Ejecutar localmente
-```bash
-pip install -r requirements.txt
-python app.py
+Aplicación Flask para visualizar costos de AWS EC2 y S3 en tiempo real.
+Desplegada en Render con datos simulados desde un archivo CSV.
