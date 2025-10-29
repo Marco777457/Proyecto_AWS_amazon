@@ -2,10 +2,14 @@ import os
 import csv
 import random
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, render_template_string
+from flask import Flask, jsonify, render_template_string, request
 import pandas as pd
-  
+import cv2
+import numpy as np
+
 app = Flask(__name__)
+
+# ---------------- CONFIGURACIÓN DE ARCHIVOS ----------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 if not os.path.exists(DATA_DIR):
@@ -13,7 +17,7 @@ if not os.path.exists(DATA_DIR):
 
 COSTS_CSV = os.path.join(DATA_DIR, 'costs.csv')
 
-# Crear dataset inicial si no existe
+# ---------------- CREAR DATASET INICIAL ----------------
 if not os.path.exists(COSTS_CSV):
     start = datetime.utcnow() - timedelta(days=30)
     rows = []
@@ -31,7 +35,7 @@ if not os.path.exists(COSTS_CSV):
         writer.writerow(['date', 'ec2', 's3', 'rds', 'lambda', 'cloudfront', 'dynamodb'])
         writer.writerows(rows)
 
-# --- Template HTML ---
+# ---------------- TEMPLATE HTML ----------------
 TEMPLATE = '''
 <!doctype html>
 <html lang="es">
@@ -45,6 +49,7 @@ TEMPLATE = '''
       body { padding: 20px; background-color: #f8f9fa; }
       .card { margin-bottom: 20px; }
       h3, h4 { color: #0d6efd; }
+      video { border: 2px solid #0d6efd; border-radius: 8px; }
     </style>
   </head>
   <body>
@@ -52,7 +57,7 @@ TEMPLATE = '''
       <h3 class="mb-3 text-center">🚀 VIGILA - Panel Integral de AWS</h3>
       <p class="text-center text-muted">Supervisión de costos, seguridad y escalabilidad de la infraestructura en la nube</p>
 
-      <!-- 🧮 Bloque 1: Costos -->
+      <!-- 🧮 BLOQUE 1: Costos -->
       <div class="card">
         <div class="card-header bg-primary text-white">1️⃣ Optimización de costos en servicios AWS</div>
         <div class="card-body">
@@ -64,7 +69,7 @@ TEMPLATE = '''
         </div>
       </div>
 
-      <!-- 🔐 Bloque 2: Seguridad -->
+      <!-- 🔐 BLOQUE 2: Seguridad -->
       <div class="card">
         <div class="card-header bg-success text-white">2️⃣ Medidas de seguridad avanzadas en AWS</div>
         <div class="card-body">
@@ -78,7 +83,7 @@ TEMPLATE = '''
         </div>
       </div>
 
-      <!-- ⚙️ Bloque 3: Escalabilidad -->
+      <!-- ⚙️ BLOQUE 3: Escalabilidad -->
       <div class="card">
         <div class="card-header bg-warning">3️⃣ Escalabilidad y rendimiento de la infraestructura</div>
         <div class="card-body">
@@ -92,8 +97,19 @@ TEMPLATE = '''
           <p class="text-muted mb-0">Esto permite que la infraestructura de VIGILA crezca automáticamente según la demanda.</p>
         </div>
       </div>
+
+      <!-- 🎥 BLOQUE 4: Cámara para detección -->
+      <div class="card">
+        <div class="card-header bg-info text-white">4️⃣ Lectura de servicios AWS mediante cámara</div>
+        <div class="card-body text-center">
+          <video id="video" width="320" height="240" autoplay></video><br><br>
+          <button id="captureBtn" class="btn btn-outline-info">📷 Leer con cámara</button>
+          <p id="cameraResult" class="mt-3 font-weight-bold text-primary"></p>
+        </div>
+      </div>
     </div>
 
+    <!-- Script principal -->
     <script>
       var ctx = document.getElementById('costChart').getContext('2d');
       var chart;
@@ -139,11 +155,34 @@ TEMPLATE = '''
       fetchCosts();
       setInterval(fetchCosts, 5000);
       document.getElementById('simulateBtn').addEventListener('click', ()=>fetch('/api/simulate', {method:'POST'}).then(_=>fetchCosts()));
+
+      // ---- Cámara ----
+      const video = document.getElementById('video');
+      if (navigator.mediaDevices && video) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(stream => { video.srcObject = stream; })
+          .catch(err => console.error("No se puede acceder a la cámara:", err));
+
+        document.getElementById('captureBtn').addEventListener('click', async () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext('2d').drawImage(video, 0, 0);
+          const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+          const formData = new FormData();
+          formData.append('image', blob, 'captura.png');
+
+          const response = await fetch('/api/camera', { method: 'POST', body: formData });
+          const result = await response.json();
+          document.getElementById('cameraResult').innerText = result.message;
+        });
+      }
     </script>
   </body>
 </html>
 '''
 
+# ---------------- FUNCIONES ----------------
 def read_costs_csv(limit=31):
     df = pd.read_csv(COSTS_CSV, parse_dates=['date'])
     df = df.sort_values('date')
@@ -155,6 +194,7 @@ def read_costs_csv(limit=31):
         rows.append(row)
     return rows
 
+# ---------------- RUTAS FLASK ----------------
 @app.route('/')
 def index():
     return render_template_string(TEMPLATE)
@@ -174,7 +214,23 @@ def api_simulate():
         new_row.append(round(max(0, float(last_row[col]) + random.uniform(-5, 8)), 2))
     with open(COSTS_CSV, 'a', newline='') as f:
         csv.writer(f).writerow(new_row)
-    return jsonify({'ok':True, 'date': new_date})
+    return jsonify({'ok': True, 'date': new_date})
 
+@app.route('/api/camera', methods=['POST'])
+def api_camera():
+    file = request.files.get('image')
+    if not file:
+        return jsonify({'message': '⚠️ No se recibió imagen.'})
+
+    npimg = np.frombuffer(file.read(), np.uint8)
+    img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+
+    # Simulación de detección de servicios AWS
+    servicios = ["EC2", "S3", "RDS", "Lambda", "CloudFront", "DynamoDB"]
+    servicio_detectado = random.choice(servicios)
+
+    return jsonify({'message': f'✅ Servicio detectado mediante cámara: {servicio_detectado}'})
+
+# ---------------- MAIN ----------------
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)

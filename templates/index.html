@@ -7,9 +7,24 @@
 </head>
 <body>
     <h1>📊 Monitoreo de Costos AWS</h1>
-    <p>Visualiza el consumo de EC2 y S3 en tiempo real.</p>
+    <p>Visualiza el consumo de EC2, S3 y otros servicios en tiempo real.</p>
+
+    <!-- Sección donde se mostrarán los datos del CSV -->
     <div id="data"></div>
 
+    <hr>
+
+    <!-- 📸 Nueva sección para lectura mediante cámara -->
+    <h2>🎥 Lectura de servicios AWS con cámara</h2>
+    <p>Puedes usar la cámara para detectar y registrar un servicio.</p>
+
+    <div id="camera-section" style="text-align:center; margin-top: 20px;">
+        <video id="video" width="320" height="240" autoplay class="border"></video><br><br>
+        <button id="captureBtn">📷 Leer con cámara</button>
+        <p id="cameraResult" style="font-weight:bold; color:blue;"></p>
+    </div>
+
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
