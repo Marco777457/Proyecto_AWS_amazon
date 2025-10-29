@@ -2,7 +2,7 @@ import os
 import csv
 import random
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, send_from_directory, render_template_string, request
+from flask import Flask, jsonify, render_template_string
 import pandas as pd
   
 app = Flask(__name__)
@@ -34,30 +34,62 @@ if not os.path.exists(COSTS_CSV):
 # --- Template HTML ---
 TEMPLATE = '''
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>VIGILA - AWS Cost & Security Dashboard (Extended)</title>
+    <title>VIGILA - Panel Integral AWS</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
     <style>
-      body { padding: 20px; }
-      .card { margin-bottom: 16px; }
+      body { padding: 20px; background-color: #f8f9fa; }
+      .card { margin-bottom: 20px; }
+      h3, h4 { color: #0d6efd; }
     </style>
   </head>
   <body>
     <div class="container">
-      <h3 class="mb-3">VIGILA - AWS Cost Dashboard (Extended Version)</h3>
+      <h3 class="mb-3 text-center">🚀 VIGILA - Panel Integral de AWS</h3>
+      <p class="text-center text-muted">Supervisión de costos, seguridad y escalabilidad de la infraestructura en la nube</p>
 
+      <!-- 🧮 Bloque 1: Costos -->
       <div class="card">
-        <div class="card-header">1) Costos simulados de múltiples servicios AWS</div>
+        <div class="card-header bg-primary text-white">1️⃣ Optimización de costos en servicios AWS</div>
         <div class="card-body">
           <canvas id="costChart" height="120"></canvas>
           <div class="mt-3 d-flex justify-content-between">
             <button id="simulateBtn" class="btn btn-sm btn-outline-primary">Simular nuevo día</button>
             <strong><span id="latestTotals">Cargando...</span></strong>
           </div>
+        </div>
+      </div>
+
+      <!-- 🔐 Bloque 2: Seguridad -->
+      <div class="card">
+        <div class="card-header bg-success text-white">2️⃣ Medidas de seguridad avanzadas en AWS</div>
+        <div class="card-body">
+          <ul>
+            <li>🔒 <strong>Cifrado de datos</strong> en reposo y en tránsito mediante AWS KMS y SSL/TLS.</li>
+            <li>👤 <strong>Gestión de accesos segura</strong> con IAM y políticas de mínimos privilegios.</li>
+            <li>🕵️ <strong>Auditoría constante</strong> con AWS CloudTrail y AWS Config.</li>
+            <li>🧠 <strong>Detección de amenazas</strong> con Amazon GuardDuty y AWS Security Hub.</li>
+          </ul>
+          <p class="text-muted mb-0">Estas medidas garantizan la protección de los datos y las cuentas de VIGILA.</p>
+        </div>
+      </div>
+
+      <!-- ⚙️ Bloque 3: Escalabilidad -->
+      <div class="card">
+        <div class="card-header bg-warning">3️⃣ Escalabilidad y rendimiento de la infraestructura</div>
+        <div class="card-body">
+          <ul>
+            <li>⚙️ Uso de <strong>Auto Scaling</strong> para ajustar automáticamente la capacidad de las instancias EC2.</li>
+            <li>🌐 Implementación de <strong>Elastic Load Balancer (ELB)</strong> para distribuir el tráfico de video.</li>
+            <li>🗄️ <strong>RDS Multi-AZ</strong> para bases de datos altamente disponibles y tolerantes a fallos.</li>
+            <li>📦 <strong>Amazon S3</strong> como almacenamiento masivo de grabaciones de video.</li>
+            <li>📊 Monitoreo de recursos con <strong>Amazon CloudWatch</strong> para garantizar rendimiento óptimo.</li>
+          </ul>
+          <p class="text-muted mb-0">Esto permite que la infraestructura de VIGILA crezca automáticamente según la demanda.</p>
         </div>
       </div>
     </div>
@@ -100,7 +132,7 @@ TEMPLATE = '''
             let total = 0;
             for (const key of keys) total += last[key];
             document.getElementById('latestTotals').innerText = 
-              'Total: $' + total.toFixed(2) + ' | ' + keys.map(k => `${k.toUpperCase()}: $${last[k].toFixed(2)}`).join(' | ');
+              '💰 Total: $' + total.toFixed(2) + ' | ' + keys.map(k => `${k.toUpperCase()}: $${last[k].toFixed(2)}`).join(' | ');
           });
       }
 
